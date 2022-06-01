@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/letting-orders/rentalDelegationId/rent-seeking/confirmation",
+    "bodyPatterns": [
+      {
+        "equalToJson": {
+          "orderId": 1
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "rentId": "123456"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
