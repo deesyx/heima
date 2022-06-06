@@ -1,0 +1,12 @@
+@startuml
+
+participant 客户企业财务编排服务 as f
+participant 企业差旅服务 as t
+participant 银联对公转账系统 as u
+
+f -> t: 1. POST /travel-contracts/{cid}/fixd-fee
+t -> u: 2. POST /union-pay/payment
+u --> u: 3. 根据银联对公转账协议进行转账
+u -> t: 4. POST /travel-contracts/{cid}/fixd-fee/confirmation
+
+@enduml
