@@ -1,0 +1,29 @@
+@startuml
+
+participant 客户企业财务编排服务 as f
+participant 企业差旅服务 as t
+database 数据库 as db
+participant 开票系统 as u
+
+f -> t: 1. POST /travel-contracts/{cid}/fixed-fee-invoice
+t -> db: 2. 保存固定服务费发票开具请求
+t -> u: 3. POST /invoices
+u --> t
+t --> f
+note left
+    {
+        "status": "PROCESSING"
+    }
+end note
+alt 开票请求没有相应的确认
+    loop 1h一次最多12次
+        t -> u: 4. POST /invoices
+        u --> t
+    end
+end
+u -> : 对接税务部门系统
+u <-- : 完成开票
+u -> t: 5. POST /travel-contracts/{cid}/fixed-fee-invoice/confirmation
+t --> u
+
+@enduml

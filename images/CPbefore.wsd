@@ -2,11 +2,17 @@
 
 participant 客户企业财务编排服务 as f
 participant 企业差旅服务 as t
-participant 银联对公转账系统 as u
+database 数据库 as db
+participant 对公转账系统 as u
 
 f -> t: 1. POST /travel-contracts/{cid}/fixd-fee
-t -> u: 2. POST /union-pay/payment
-u --> u: 3. 根据银联对公转账协议进行转账
+t -> db: 2. 保存固定服务费用支付请求
+t -> u: 3. POST /union-pay/payments
+u --> t
+t --> f
+u -> : 对接银联对公转账系统
+u <-- : 客户完成支付
 u -> t: 4. POST /travel-contracts/{cid}/fixd-fee/confirmation
+t --> u
 
 @enduml
