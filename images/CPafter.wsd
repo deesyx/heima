@@ -11,7 +11,7 @@ t -> u: 3. POST /union-pay/payments
 alt 成功
     u --> t: 成功响应
     t --> f: 成功响应
-else 503或504异常
+else 5xx异常
     u --> t: 失败响应
     loop 3s一次最多3次
         t -> u: 4. GET /union-pay/payments/{requestId}
