@@ -17,7 +17,7 @@ public class TravelContractController {
 
     @PostMapping("/{cid}/fixd-fee")
     @ResponseStatus(HttpStatus.CREATED)
-    public RequestFixedFeeResponse requestFixdFee(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeRequest request) {
+    public RequestFixedFeeResponse requestFixdFee(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeRequest request) throws InterruptedException {
         String requestId = travelContractService.requestFixdFee(cid, request.getDestinationCardNumber());
         return new RequestFixedFeeResponse(requestId);
     }
