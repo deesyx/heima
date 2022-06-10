@@ -2,6 +2,7 @@ package com.tw.heima.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tw.heima.controller.dto.request.RequestFixedFeeRequest;
+import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.service.TravelContractService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static com.tw.heima.exception.ExceptionType.DATA_NOT_FOUND;
+import static com.tw.heima.exception.ExceptionType.INPUT_PARAM_INVALID;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -68,6 +70,21 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.code").value("000002"))
                     .andExpect(jsonPath("$.msg").value("data not found"))
                     .andExpect(jsonPath("$.detail").value("contract not found"));
+        }
+
+        @Test
+        void should_return_400_exception_response_when_contract_has_finish_payment() throws Exception {
+            RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
+            when(travelContractService.requestFixdFee("123", "cardNumber"))
+                    .thenThrow(new BadRequestException(INPUT_PARAM_INVALID, "contract has finish payment"));
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("000001"))
+                    .andExpect(jsonPath("$.msg").value("input param invalid"))
+                    .andExpect(jsonPath("$.detail").value("contract has finish payment"));
         }
     }
 }
