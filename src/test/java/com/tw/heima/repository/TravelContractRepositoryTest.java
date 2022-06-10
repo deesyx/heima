@@ -9,6 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -21,7 +22,7 @@ class TravelContractRepositoryTest {
     private TravelContractRepository repository;
 
     @Test
-    void should_find_contract_by_cid() {
+    void should_find_contract_by_cid_when_contract_exist() {
         TravelContractEntity contractEntity = TravelContractEntity.builder()
                 .cid("123")
                 .fixedFeeAmount(BigDecimal.valueOf(1000))
@@ -38,5 +39,24 @@ class TravelContractRepositoryTest {
 
         assertThat(contract.getCid(), is("123"));
         assertThat(contract.getFixedFeeRequest().getRequestId(), is("1-2-3"));
+    }
+
+    @Test
+    void should_return_null_when_contract_not_found() {
+        TravelContractEntity contractEntity = TravelContractEntity.builder()
+                .cid("123")
+                .fixedFeeAmount(BigDecimal.valueOf(1000))
+                .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                        .requestId("1-2-3")
+                        .fixedFeeAmount(BigDecimal.valueOf(1000))
+                        .build())
+                .createdAt(LocalDateTime.now())
+                .expiredAt(LocalDateTime.now().plusYears(1))
+                .build();
+        repository.save(contractEntity);
+
+        Optional<TravelContractEntity> contract = repository.findByCid("321");
+
+        assertThat(contract.isEmpty(), is(true));
     }
 }

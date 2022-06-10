@@ -77,9 +77,9 @@ class TravelContractServiceTest {
 
         @Test
         void should_throw_DataNotFoundException_when_cid_is_not_found() {
-            when(travelContractRepository.findByCid("123")).thenReturn(Optional.empty());
+            when(travelContractRepository.findByCid("321")).thenReturn(Optional.empty());
 
-            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixdFee("321", "cardNumber"));
 
             assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
             assertThat(exception.getDetail(), is("contract not found"));
