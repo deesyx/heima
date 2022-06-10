@@ -17,13 +17,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.vladmihalcea:hibernate-types-52:2.16.2'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:3.1.2'
-    implementation 'junit:junit:4.13.1'
+    implementation 'junit:junit:4.13.2'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'mysql:mysql-connector-java'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'com.h2database:h2:2.1.212'
     testImplementation 'com.github.tomakehurst:wiremock-jre8:2.33.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mock-server:mockserver-netty:5.13.2'
+    testImplementation 'org.mock-server:mockserver-client-java:5.13.2'
 }
 
 tasks.named('test') {
