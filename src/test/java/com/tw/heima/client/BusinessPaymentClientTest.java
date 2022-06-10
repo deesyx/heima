@@ -25,6 +25,8 @@ class BusinessPaymentClientTest {
 
     private ClientAndServer server;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
     private BusinessPaymentClient businessPaymentClient;
 
@@ -50,11 +52,11 @@ class BusinessPaymentClientTest {
         server.when(request()
                         .withMethod("POST")
                         .withPath("/union-pay/payments")
-                        .withBody(new ObjectMapper().writeValueAsString(request)))
+                        .withBody(objectMapper.writeValueAsString(request)))
                 .respond(response()
                         .withStatusCode(201)
                         .withHeader("Content-Type", "application/json")
-                        .withBody(new ObjectMapper().writeValueAsString(response)));
+                        .withBody(objectMapper.writeValueAsString(response)));
 
         RequestPaymentResponse requestPaymentResponse = businessPaymentClient.requestPayment(request);
 
