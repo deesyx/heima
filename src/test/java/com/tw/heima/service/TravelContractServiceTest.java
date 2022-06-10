@@ -2,9 +2,11 @@ package com.tw.heima.service;
 
 import com.tw.heima.client.BusinessPaymentClient;
 import com.tw.heima.client.dto.response.RequestPaymentResponse;
+import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.repository.TravelContractRepository;
+import com.tw.heima.repository.entity.FixedFeeConfirmationEntity;
 import com.tw.heima.repository.entity.FixedFeeRequestEntity;
 import com.tw.heima.repository.entity.TravelContractEntity;
 import feign.FeignException;
@@ -83,6 +85,25 @@ class TravelContractServiceTest {
 
             assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
             assertThat(exception.getDetail(), is("contract not found"));
+        }
+
+        @Test
+        void should_throw_badRequestException_when_contract_has_finish_fixed_fee_payment() {
+            FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeConfirmation(fixedFeeConfirmation)
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+
+            assertThat(exception.getType(), is(ExceptionType.INPUT_PARAM_INVALID));
+            assertThat(exception.getDetail(), is("contract has finish payment"));
         }
     }
 

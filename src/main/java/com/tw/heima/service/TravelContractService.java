@@ -3,6 +3,7 @@ package com.tw.heima.service;
 import com.tw.heima.client.BusinessPaymentClient;
 import com.tw.heima.client.dto.request.RequestPaymentRequest;
 import com.tw.heima.client.dto.response.RequestPaymentResponse;
+import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.exception.ExternalServerException;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import static com.tw.heima.exception.ExceptionType.DATA_NOT_FOUND;
+import static com.tw.heima.exception.ExceptionType.INPUT_PARAM_INVALID;
 
 @Slf4j
 @Service
@@ -30,8 +32,11 @@ public class TravelContractService {
         TravelContractEntity contractEntity = travelContractRepository.findByCid(cid)
                 .orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
         TravelContract contract = TravelContract.fromEntity(contractEntity);
-        FixedFeeRequest fixedFeeRequest = contract.getFixedFeeRequest();
+        if (contract.getFixedFeeRequest().hasConfirm()) {
+            throw new BadRequestException(INPUT_PARAM_INVALID, "contract has finish payment");
+        }
 
+        FixedFeeRequest fixedFeeRequest = contract.getFixedFeeRequest();
         RequestPaymentRequest requestPaymentRequest = RequestPaymentRequest.builder()
                 .requestId(fixedFeeRequest.getRequestId())
                 .amount(fixedFeeRequest.getFixedFeeAmount())

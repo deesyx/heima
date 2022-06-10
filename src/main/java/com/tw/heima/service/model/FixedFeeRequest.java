@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -17,6 +18,8 @@ public class FixedFeeRequest {
     private Integer id;
     private String requestId;
     private BigDecimal fixedFeeAmount;
+
+    private FixedFeeConfirmation fixedFeeConfirmation;
     private LocalDateTime createdAt;
     private LocalDateTime expiredAt;
 
@@ -25,6 +28,7 @@ public class FixedFeeRequest {
                 .id(id)
                 .requestId(requestId)
                 .fixedFeeAmount(fixedFeeAmount)
+                .fixedFeeConfirmation(fixedFeeConfirmation.toEntity())
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
                 .build();
@@ -35,8 +39,14 @@ public class FixedFeeRequest {
                 .id(entity.getId())
                 .requestId(entity.getRequestId())
                 .fixedFeeAmount(entity.getFixedFeeAmount())
+                .fixedFeeConfirmation(Optional.ofNullable(entity.getFixedFeeConfirmation())
+                        .map(FixedFeeConfirmation::fromEntity).orElse(null))
                 .createdAt(entity.getCreatedAt())
                 .expiredAt(entity.getExpiredAt())
                 .build();
+    }
+
+    public boolean hasConfirm() {
+        return fixedFeeConfirmation != null;
     }
 }
