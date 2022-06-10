@@ -14,7 +14,6 @@ public class TravelContractController {
 
     private final TravelContractService travelContractService;
 
-
     @PostMapping("/{cid}/fixd-fee")
     @ResponseStatus(HttpStatus.CREATED)
     public RequestFixedFeeResponse requestFixdFee(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeRequest request) throws InterruptedException {
