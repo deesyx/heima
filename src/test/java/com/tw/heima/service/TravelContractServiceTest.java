@@ -2,6 +2,8 @@ package com.tw.heima.service;
 
 import com.tw.heima.client.BusinessPaymentClient;
 import com.tw.heima.client.dto.response.RequestPaymentResponse;
+import com.tw.heima.exception.DataNotFoundException;
+import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.repository.TravelContractRepository;
 import com.tw.heima.repository.entity.FixedFeeRequestEntity;
 import com.tw.heima.repository.entity.TravelContractEntity;
@@ -14,9 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -44,7 +48,7 @@ class TravelContractServiceTest {
                             .fixedFeeAmount(BigDecimal.valueOf(1000))
                             .build())
                     .build();
-            when(travelContractRepository.findByCid("123")).thenReturn(contract);
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
             when(businessPaymentClient.requestPayment(any())).thenReturn(new RequestPaymentResponse("paymentId"));
 
             String requestId = travelContractService.requestFixdFee("123", "cardNumber");
@@ -61,7 +65,7 @@ class TravelContractServiceTest {
                             .fixedFeeAmount(BigDecimal.valueOf(1000))
                             .build())
                     .build();
-            when(travelContractRepository.findByCid("123")).thenReturn(contract);
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
             FeignException.GatewayTimeout gatewayTimeout = givenGatewayTimeoutException();
             when(businessPaymentClient.requestPayment(any())).thenThrow(gatewayTimeout);
             when(businessPaymentClient.getPaymentRequest(any())).thenReturn(new RequestPaymentResponse("paymentId"));
@@ -69,6 +73,16 @@ class TravelContractServiceTest {
             String requestId = travelContractService.requestFixdFee("123", "cardNumber");
 
             assertThat(requestId, is("1-2-3"));
+        }
+
+        @Test
+        void should_throw_DataNotFoundException_when_cid_is_not_found() {
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.empty());
+
+            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+
+            assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
+            assertThat(exception.getDetail(), is("contract not found"));
         }
     }
 

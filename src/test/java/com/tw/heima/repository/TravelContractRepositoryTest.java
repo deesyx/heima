@@ -34,7 +34,7 @@ class TravelContractRepositoryTest {
                 .build();
         repository.save(contractEntity);
 
-        TravelContractEntity contract = repository.findByCid("123");
+        TravelContractEntity contract = repository.findByCid("123").orElseThrow();
 
         assertThat(contract.getCid(), is("123"));
         assertThat(contract.getFixedFeeRequest().getRequestId(), is("1-2-3"));
