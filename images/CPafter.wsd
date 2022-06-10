@@ -2,26 +2,24 @@
 
 participant 客户企业财务编排服务 as f
 participant 企业差旅服务 as t
-database 数据库 as db
 participant 对公转账系统 as u
 
 f -> t: 1. POST /travel-contracts/{cid}/fixd-fee
-t -> db: 2. 保存固定服务费用支付请求
-t -> u: 3. POST /union-pay/payments
+t -> u: 2. POST /union-pay/payments
 alt 成功
     u --> t: 成功响应
     t --> f: 成功响应
 else 5xx异常
     u --> t: 失败响应
     loop 3s一次最多3次
-        t -> u: 4. GET /union-pay/payments/{requestId}
+        t -> u: 3. GET /union-pay/payments/{requestId}
         u --> t: 查询状态
     end
     t --> f: 成功或失败响应
 end
 u -> : 对接银联对公转账系统
 u <-- : 客户完成支付
-u -> t: 5. POST /travel-contracts/{cid}/fixd-fee/confirmation
+u -> t: 4. POST /travel-contracts/{cid}/fixd-fee/confirmation
 t --> u
 
 @enduml

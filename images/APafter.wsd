@@ -16,7 +16,7 @@ note left
     }
 end note
 alt 开票请求没有相应的确认
-    loop 1h一次最多12次
+    loop 1h一次,每个请求最多重试12次
         t -> u: 4. POST /invoices
         u --> t
     end
