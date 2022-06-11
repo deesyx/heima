@@ -13,8 +13,6 @@ server:
   port: 8080
 
 services:
-  rental-delegation:
-    url: http://localhost:8081
   business-payment:
     url: http://localhost:9001
   invoice:
