@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -260,6 +261,37 @@ class TravelContractServiceTest {
             assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest(), is(notNullValue()));
             assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
             assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.PROCESSING));
+        }
+
+        @Test
+        void should_return_FixedFeeInvoiceRequest_with_status_FAILED_when_has_retry_over_12_times_to_request_invoice_but_failed() {
+            FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            List<InvoiceRequestRetryRecordEntity> invoiceRequestRetryRecords = new ArrayList<>();
+            for (int i = 0; i < 12; i++) {
+                invoiceRequestRetryRecords.add(new InvoiceRequestRetryRecordEntity());
+            }
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeConfirmation(fixedFeeConfirmation)
+                            .build())
+                    .fixedFeeInvoiceRequest(FixedFeeInvoiceRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .taxIdentifier("tax123")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .invoiceRequestRetryRecords(invoiceRequestRetryRecords)
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+
+            verify(travelContractRepository, never()).save(any());
+            verify(invoiceClient, never()).requestInvoice(any());
+            assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
+            assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.FAILED));
         }
     }
 

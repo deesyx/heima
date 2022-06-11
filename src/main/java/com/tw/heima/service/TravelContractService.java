@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.tw.heima.exception.ExceptionType.*;
-import static com.tw.heima.service.model.FixedFeeInvoiceRequestStatus.COMPLETED;
-import static com.tw.heima.service.model.FixedFeeInvoiceRequestStatus.PROCESSING;
+import static com.tw.heima.service.model.FixedFeeInvoiceRequestStatus.*;
 
 @Slf4j
 @Service
@@ -96,7 +95,9 @@ public class TravelContractService {
             throw new BadRequestException(INPUT_PARAM_INVALID, "contract has not finished fixed fee payment");
         }
         if (contract.getFixedFeeInvoiceRequest() != null
-                && contract.getFixedFeeInvoiceRequest().status() == COMPLETED) {
+                && (contract.getFixedFeeInvoiceRequest().status() == COMPLETED
+                || contract.getFixedFeeInvoiceRequest().status() == FAILED)
+        ) {
             return contract.getFixedFeeInvoiceRequest();
         }
 
