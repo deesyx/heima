@@ -18,10 +18,15 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.tw.heima.exception.ExceptionType.*;
 import static com.tw.heima.service.model.FixedFeeInvoiceRequestStatus.COMPLETED;
+import static com.tw.heima.service.model.FixedFeeInvoiceRequestStatus.PROCESSING;
 
 @Slf4j
 @Service
@@ -105,8 +110,35 @@ public class TravelContractService {
                 .requestId(fixedFeeInvoiceRequest.getRequestId())
                 .build();
 
-        invoiceClient.requestInvoice(requestInvoiceRequest);
+        try {
+            invoiceClient.requestInvoice(requestInvoiceRequest);
+        } catch (Exception e) {
+            log.error("call invoice service failed", e);
+        }
 
         return fixedFeeInvoiceRequest;
+    }
+
+    @Scheduled(cron = "0 0 * * * ?")
+    public void retryRequestFixdFeeInvoice() {
+        List<TravelContract> needRetryContract = travelContractRepository.findAll().stream()
+                .map(TravelContract::fromEntity)
+                .filter(contract -> contract.getFixedFeeInvoiceRequest() != null && contract.getFixedFeeInvoiceRequest().status() == PROCESSING)
+                .collect(Collectors.toList());
+
+        needRetryContract.forEach(contract -> {
+            RequestInvoiceRequest requestInvoiceRequest = RequestInvoiceRequest.builder()
+                    .identifier(contract.getFixedFeeInvoiceRequest().getTaxIdentifier())
+                    .amount(contract.getFixedFeeInvoiceRequest().getFixedFeeAmount())
+                    .requestId(contract.getFixedFeeInvoiceRequest().getRequestId())
+                    .build();
+            contract.getFixedFeeInvoiceRequest().increaseRetryTime();
+            try {
+                travelContractRepository.save(contract.toEntity());
+                invoiceClient.requestInvoice(requestInvoiceRequest);
+            } catch (Exception e) {
+                log.error("call invoice service failed", e);
+            }
+        });
     }
 }

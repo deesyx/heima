@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Getter
@@ -31,4 +33,7 @@ public class FixedFeeInvoiceRequestEntity {
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "fixedFeeInvoiceRequest")
     private FixedFeeInvoiceConfirmationEntity fixedFeeInvoiceConfirmation;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fixedFeeInvoiceRequest")
+    private List<InvoiceRequestRetryRecordEntity> invoiceRequestRetryRecords;
 }

@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -237,11 +238,62 @@ class TravelContractServiceTest {
             assertThat(exception.getType(), is(ExceptionType.INPUT_PARAM_INVALID));
             assertThat(exception.getDetail(), is("contract has not finished fixed fee payment"));
         }
+
+        @Test
+        void should_return_FixedFeeInvoiceRequest_when_invoice_service_is_unavailable() {
+            FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeConfirmation(fixedFeeConfirmation)
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+            FeignException.GatewayTimeout gatewayTimeout = givenGatewayTimeoutException();
+            when(invoiceClient.requestInvoice(any())).thenThrow(gatewayTimeout);
+
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+
+            verify(travelContractRepository).save(contractEntityCaptor.capture());
+            assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest(), is(notNullValue()));
+            assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
+            assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.PROCESSING));
+        }
+    }
+
+    @Nested
+    class RetryRequestFixdFeeInvoice {
+        @Test
+        void should_retry_call_invoice_service_success() {
+            FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeConfirmation(fixedFeeConfirmation)
+                            .build())
+                    .fixedFeeInvoiceRequest(FixedFeeInvoiceRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .taxIdentifier("tax123")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .build())
+                    .build();
+            when(travelContractRepository.findAll()).thenReturn(List.of(contract));
+            when(invoiceClient.requestInvoice(any())).thenReturn(new RequestInvoiceResponse("invoiceId"));
+
+            travelContractService.retryRequestFixdFeeInvoice();
+
+            verify(travelContractRepository).save(contractEntityCaptor.capture());
+            assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest().getInvoiceRequestRetryRecords().size(), is(1));
+        }
     }
 
     private FeignException.GatewayTimeout givenGatewayTimeoutException() {
         FeignException.GatewayTimeout gatewayTimeout = mock(FeignException.GatewayTimeout.class);
-        when(gatewayTimeout.status()).thenReturn(504);
+        lenient().when(gatewayTimeout.status()).thenReturn(504);
         return gatewayTimeout;
     }
 

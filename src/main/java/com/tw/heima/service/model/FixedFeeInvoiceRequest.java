@@ -8,8 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -21,6 +24,7 @@ public class FixedFeeInvoiceRequest {
     private String taxIdentifier;
     private BigDecimal fixedFeeAmount;
     private FixedFeeInvoiceConfirmation fixedFeeInvoiceConfirmation;
+    private List<InvoiceRequestRetryRecord> invoiceRequestRetryRecords;
     private LocalDateTime createdAt;
     private LocalDateTime expiredAt;
 
@@ -40,6 +44,10 @@ public class FixedFeeInvoiceRequest {
                 .fixedFeeAmount(fixedFeeAmount)
                 .fixedFeeInvoiceConfirmation(Optional.ofNullable(fixedFeeInvoiceConfirmation)
                         .map(FixedFeeInvoiceConfirmation::toEntity).orElse(null))
+                .invoiceRequestRetryRecords(Optional.ofNullable(invoiceRequestRetryRecords).orElse(Collections.emptyList())
+                        .stream()
+                        .map(InvoiceRequestRetryRecord::toEntity)
+                        .collect(Collectors.toList()))
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
                 .build();
@@ -53,6 +61,10 @@ public class FixedFeeInvoiceRequest {
                 .fixedFeeAmount(entity.getFixedFeeAmount())
                 .fixedFeeInvoiceConfirmation(Optional.ofNullable(entity.getFixedFeeInvoiceConfirmation())
                         .map(FixedFeeInvoiceConfirmation::fromEntity).orElse(null))
+                .invoiceRequestRetryRecords(Optional.ofNullable(entity.getInvoiceRequestRetryRecords()).orElse(Collections.emptyList())
+                        .stream()
+                        .map(InvoiceRequestRetryRecord::fromEntity)
+                        .collect(Collectors.toList()))
                 .createdAt(entity.getCreatedAt())
                 .expiredAt(entity.getExpiredAt())
                 .build();
@@ -60,9 +72,17 @@ public class FixedFeeInvoiceRequest {
 
     public FixedFeeInvoiceRequestStatus status() {
         if (fixedFeeInvoiceConfirmation == null) {
-            return FixedFeeInvoiceRequestStatus.PROCESSING;
+            if (invoiceRequestRetryRecords == null || invoiceRequestRetryRecords.size() < 12) {
+                return FixedFeeInvoiceRequestStatus.PROCESSING;
+            } else {
+                return FixedFeeInvoiceRequestStatus.FAILED;
+            }
         } else {
             return FixedFeeInvoiceRequestStatus.COMPLETED;
         }
+    }
+
+    public void increaseRetryTime() {
+        this.invoiceRequestRetryRecords.add(new InvoiceRequestRetryRecord());
     }
 }
