@@ -5,6 +5,7 @@ import com.tw.heima.client.dto.response.RequestPaymentResponse;
 import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.exception.ExceptionType;
+import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.repository.TravelContractRepository;
 import com.tw.heima.repository.entity.FixedFeeConfirmationEntity;
 import com.tw.heima.repository.entity.FixedFeeRequestEntity;
@@ -105,11 +106,44 @@ class TravelContractServiceTest {
             assertThat(exception.getType(), is(ExceptionType.INPUT_PARAM_INVALID));
             assertThat(exception.getDetail(), is("contract has finish payment"));
         }
+
+        @Test
+        void should_throw_ExternalServerException_with_RETRY_LATER_when_business_payment_service_has_not_handle_request() {
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+            FeignException.ServiceUnavailable serviceUnavailable = givenServiceUnavailableException();
+            when(businessPaymentClient.requestPayment(any())).thenThrow(serviceUnavailable);
+            FeignException.NotFound notFound = givenNotFoundException();
+            when(businessPaymentClient.getPaymentRequest(any())).thenThrow(notFound);
+
+            ExternalServerException exception = assertThrows(ExternalServerException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+
+            assertThat(exception.getType(), is(ExceptionType.RETRY_LATTER));
+            assertThat(exception.getDetail(), is("business payment service is temporarily unavailable"));
+        }
     }
 
     private FeignException.GatewayTimeout givenGatewayTimeoutException() {
         FeignException.GatewayTimeout gatewayTimeout = mock(FeignException.GatewayTimeout.class);
         when(gatewayTimeout.status()).thenReturn(504);
         return gatewayTimeout;
+    }
+
+    private FeignException.ServiceUnavailable givenServiceUnavailableException() {
+        FeignException.ServiceUnavailable serviceUnavailable = mock(FeignException.ServiceUnavailable.class);
+        when(serviceUnavailable.status()).thenReturn(503);
+        return serviceUnavailable;
+    }
+
+    private FeignException.NotFound givenNotFoundException() {
+        FeignException.NotFound notFound = mock(FeignException.NotFound.class);
+        when(notFound.status()).thenReturn(404);
+        return notFound;
     }
 }

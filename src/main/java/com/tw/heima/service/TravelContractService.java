@@ -17,8 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import static com.tw.heima.exception.ExceptionType.DATA_NOT_FOUND;
-import static com.tw.heima.exception.ExceptionType.INPUT_PARAM_INVALID;
+import static com.tw.heima.exception.ExceptionType.*;
 
 @Slf4j
 @Service
@@ -65,7 +64,10 @@ public class TravelContractService {
             try {
                 response = businessPaymentClient.getPaymentRequest(requestId);
             } catch (FeignException feignException) {
-                if (feignException.status() >= HttpStatus.INTERNAL_SERVER_ERROR.value()) {
+                if (feignException.status() == HttpStatus.NOT_FOUND.value()) {
+                    log.info(String.format("payment request has not handled for %s", requestId));
+                    throw new ExternalServerException(RETRY_LATTER, "business payment service is temporarily unavailable");
+                } else if (feignException.status() >= HttpStatus.INTERNAL_SERVER_ERROR.value()) {
                     continue;
                 } else {
                     throw feignException;
