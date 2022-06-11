@@ -130,5 +130,16 @@ class BusinessPaymentClientTest {
 
             assertThrows(FeignException.NotFound.class, () -> businessPaymentClient.getPaymentRequest("1-2-3"));
         }
+
+        @Test
+        void should_throw_ServiceUnavailable_exception() {
+            server.when(request()
+                            .withMethod("GET")
+                            .withPath("/union-pay/payments/1-2-3"))
+                    .respond(response()
+                            .withStatusCode(503));
+
+            assertThrows(FeignException.ServiceUnavailable.class, () -> businessPaymentClient.getPaymentRequest("1-2-3"));
+        }
     }
 }
