@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tw.heima.controller.dto.request.RequestFixedFeeRequest;
 import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
+import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.service.TravelContractService;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,6 +101,21 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.code").value("000003"))
                     .andExpect(jsonPath("$.msg").value("please retry later"))
                     .andExpect(jsonPath("$.detail").value("business payment service is temporarily unavailable"));
+        }
+
+        @Test
+        void should_return_ExternalServerException_with_CONTACT_IT_response_when_business_payment_service_is_unavailable() throws Exception {
+            RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
+            when(travelContractService.requestFixdFee("123", "cardNumber"))
+                    .thenThrow(new ExternalServerException(ExceptionType.CONTACT_IT, "business payment service is unavailable"));
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.code").value("000004"))
+                    .andExpect(jsonPath("$.msg").value("please contact with IT"))
+                    .andExpect(jsonPath("$.detail").value("business payment service is unavailable"));
         }
     }
 }
