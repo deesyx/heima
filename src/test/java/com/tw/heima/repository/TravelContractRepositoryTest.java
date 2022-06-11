@@ -12,7 +12,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -124,6 +126,40 @@ class TravelContractRepositoryTest {
             TravelContractEntity persistedContract = repository.save(contractEntity);
 
             assertThat(persistedContract.getCid(), is("123"));
+        }
+    }
+
+    @Nested
+    class FindAll {
+        @Test
+        void should_find_all_contract() {
+            TravelContractEntity contractEntity1 = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeAmount(BigDecimal.valueOf(123))
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .build())
+                    .createdAt(LocalDateTime.now())
+                    .expiredAt(LocalDateTime.now().plusYears(1))
+                    .build();
+            TravelContractEntity contractEntity2 = TravelContractEntity.builder()
+                    .cid("456")
+                    .fixedFeeAmount(BigDecimal.valueOf(456))
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("4-5-6")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .build())
+                    .createdAt(LocalDateTime.now())
+                    .expiredAt(LocalDateTime.now().plusYears(1))
+                    .build();
+            repository.saveAll(List.of(contractEntity1, contractEntity2));
+
+            List<TravelContractEntity> contracts = repository.findAll()
+                    .stream().filter(it -> it.getCid() != null).collect(Collectors.toList());
+
+            assertThat(contracts.get(0).getCid(), is("123"));
+            assertThat(contracts.get(1).getCid(), is("456"));
         }
     }
 }
