@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tw.heima.client.dto.request.RequestInvoiceRequest;
 import com.tw.heima.client.dto.response.RequestInvoiceResponse;
+import feign.FeignException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -60,5 +62,23 @@ class InvoiceClientTest {
         RequestInvoiceResponse requestInvoiceResponse = invoiceClient.requestInvoice(request);
 
         assertThat(requestInvoiceResponse.getInvoiceId(), is("invoiceId"));
+    }
+
+    @Test
+    void should_throw_GatewayTimeout_exception() throws JsonProcessingException {
+        RequestInvoiceRequest request = RequestInvoiceRequest.builder()
+                .requestId("1-2-3")
+                .amount(BigDecimal.valueOf(1000))
+                .identifier("tax123")
+                .build();
+        RequestInvoiceResponse response = RequestInvoiceResponse.builder().invoiceId("invoiceId").build();
+        server.when(request()
+                        .withMethod("POST")
+                        .withPath("/invoices")
+                        .withBody(objectMapper.writeValueAsString(request)))
+                .respond(response()
+                        .withStatusCode(504));
+
+        assertThrows(FeignException.GatewayTimeout.class, () -> invoiceClient.requestInvoice(request));
     }
 }
