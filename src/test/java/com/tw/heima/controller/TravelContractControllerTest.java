@@ -1,12 +1,14 @@
 package com.tw.heima.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tw.heima.controller.dto.request.RequestFixedFeeInvoiceRequest;
 import com.tw.heima.controller.dto.request.RequestFixedFeeRequest;
 import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.service.TravelContractService;
+import com.tw.heima.service.model.FixedFeeInvoiceRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -116,6 +118,23 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.code").value("000004"))
                     .andExpect(jsonPath("$.msg").value("please contact with IT"))
                     .andExpect(jsonPath("$.detail").value("business payment service is unavailable"));
+        }
+    }
+
+    @Nested
+    class RequestFixdFeeInvoice {
+        @Test
+        void should_request_fixd_fee_invoice_return_processing() throws Exception {
+            RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = FixedFeeInvoiceRequest.builder().requestId("1-2-3").build();
+            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.requestId").value("1-2-3"))
+                    .andExpect(jsonPath("$.status").value("PROCESSING"));
         }
     }
 }
