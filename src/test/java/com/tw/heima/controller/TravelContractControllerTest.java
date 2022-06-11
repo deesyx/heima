@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tw.heima.controller.dto.request.RequestFixedFeeRequest;
 import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
+import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.service.TravelContractService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -16,8 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static com.tw.heima.exception.ExceptionType.DATA_NOT_FOUND;
-import static com.tw.heima.exception.ExceptionType.INPUT_PARAM_INVALID;
+import static com.tw.heima.exception.ExceptionType.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -85,6 +85,21 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.code").value("000001"))
                     .andExpect(jsonPath("$.msg").value("input param invalid"))
                     .andExpect(jsonPath("$.detail").value("contract has finish payment"));
+        }
+
+        @Test
+        void should_return_ExternalServerException_with_RETRY_LATER_response_when_business_payment_service_is_temporarily_unavailable() throws Exception {
+            RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
+            when(travelContractService.requestFixdFee("123", "cardNumber"))
+                    .thenThrow(new ExternalServerException(RETRY_LATTER, "business payment service is temporarily unavailable"));
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.code").value("000003"))
+                    .andExpect(jsonPath("$.msg").value("please retry later"))
+                    .andExpect(jsonPath("$.detail").value("business payment service is temporarily unavailable"));
         }
     }
 }
