@@ -83,6 +83,23 @@ class BusinessPaymentClientTest {
 
             assertThrows(FeignException.GatewayTimeout.class, () -> businessPaymentClient.requestPayment(request));
         }
+
+        @Test
+        void should_throw_ServiceUnavailable_exception() throws JsonProcessingException {
+            RequestPaymentRequest request = RequestPaymentRequest.builder()
+                    .requestId("1-2-3")
+                    .amount(BigDecimal.valueOf(1000))
+                    .destinationCardNumber("cardNumber")
+                    .build();
+            server.when(request()
+                            .withMethod("POST")
+                            .withPath("/union-pay/payments")
+                            .withBody(objectMapper.writeValueAsString(request)))
+                    .respond(response()
+                            .withStatusCode(503));
+
+            assertThrows(FeignException.ServiceUnavailable.class, () -> businessPaymentClient.requestPayment(request));
+        }
     }
 
     @Nested
@@ -101,6 +118,17 @@ class BusinessPaymentClientTest {
             RequestPaymentResponse requestPaymentResponse = businessPaymentClient.getPaymentRequest("1-2-3");
 
             assertThat(requestPaymentResponse.getPaymentId(), is("paymentId"));
+        }
+
+        @Test
+        void should_throw_NotFound_exception() {
+            server.when(request()
+                            .withMethod("GET")
+                            .withPath("/union-pay/payments/1-2-3"))
+                    .respond(response()
+                            .withStatusCode(404));
+
+            assertThrows(FeignException.NotFound.class, () -> businessPaymentClient.getPaymentRequest("1-2-3"));
         }
     }
 }
