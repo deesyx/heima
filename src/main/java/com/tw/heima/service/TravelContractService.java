@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import static com.tw.heima.exception.ExceptionType.*;
+import static com.tw.heima.service.model.FixedFeeInvoiceRequestStatus.COMPLETED;
 
 @Slf4j
 @Service
@@ -85,8 +86,12 @@ public class TravelContractService {
     public FixedFeeInvoiceRequest requestFixdFeeInvoice(String cid, String identifier) {
         TravelContractEntity contractEntity = travelContractRepository.findByCid(cid)
                 .orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
-
         TravelContract contract = TravelContract.fromEntity(contractEntity);
+        if (contract.getFixedFeeInvoiceRequest() != null
+                && contract.getFixedFeeInvoiceRequest().status() == COMPLETED) {
+            return contract.getFixedFeeInvoiceRequest();
+        }
+
         contract.requestFixedFeeInvoice(new FixedFeeInvoiceRequest(identifier, contract.getFixedFeeAmount()));
         travelContractRepository.save(contract.toEntity());
 

@@ -28,4 +28,7 @@ public class FixedFeeInvoiceRequestEntity {
     @OneToOne
     @JoinColumn(name = "contract_primary_id")
     private TravelContractEntity travelContract;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "fixedFeeInvoiceRequest")
+    private FixedFeeInvoiceConfirmationEntity fixedFeeInvoiceConfirmation;
 }

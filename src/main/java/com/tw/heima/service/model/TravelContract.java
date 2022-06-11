@@ -29,7 +29,7 @@ public class TravelContract {
                 .cid(cid)
                 .fixedFeeAmount(fixedFeeAmount)
                 .fixedFeeRequest(fixedFeeRequest.toEntity())
-                .fixedFeeInvoiceRequestEntity(fixedFeeInvoiceRequest.toEntity())
+                .fixedFeeInvoiceRequest(fixedFeeInvoiceRequest.toEntity())
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
                 .build();
@@ -41,7 +41,7 @@ public class TravelContract {
                 .cid(entity.getCid())
                 .fixedFeeAmount(entity.getFixedFeeAmount())
                 .fixedFeeRequest(FixedFeeRequest.fromEntity(entity.getFixedFeeRequest()))
-                .fixedFeeInvoiceRequest(Optional.ofNullable(entity.getFixedFeeInvoiceRequestEntity())
+                .fixedFeeInvoiceRequest(Optional.ofNullable(entity.getFixedFeeInvoiceRequest())
                         .map(FixedFeeInvoiceRequest::fromEntity).orElse(null))
                 .createdAt(entity.getCreatedAt())
                 .expiredAt(entity.getExpiredAt())

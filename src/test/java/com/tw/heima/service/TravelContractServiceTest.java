@@ -9,9 +9,7 @@ import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.repository.TravelContractRepository;
-import com.tw.heima.repository.entity.FixedFeeConfirmationEntity;
-import com.tw.heima.repository.entity.FixedFeeRequestEntity;
-import com.tw.heima.repository.entity.TravelContractEntity;
+import com.tw.heima.repository.entity.*;
 import com.tw.heima.service.model.FixedFeeInvoiceRequest;
 import com.tw.heima.service.model.FixedFeeInvoiceRequestStatus;
 import feign.FeignException;
@@ -180,9 +178,37 @@ class TravelContractServiceTest {
             FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
 
             verify(travelContractRepository).save(contractEntityCaptor.capture());
-            assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequestEntity(), is(notNullValue()));
+            assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest(), is(notNullValue()));
             assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
             assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.PROCESSING));
+        }
+
+        @Test
+        void should_return_FixedFeeInvoiceRequest_with_status_COMPLETED_when_contract_has_finish_fixed_fee_invoice() {
+            FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            FixedFeeInvoiceConfirmationEntity fixedFeeInvoiceConfirmation = FixedFeeInvoiceConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeConfirmation(fixedFeeConfirmation)
+                            .build())
+                    .fixedFeeInvoiceRequest(FixedFeeInvoiceRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .taxIdentifier("tax123")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeInvoiceConfirmation(fixedFeeInvoiceConfirmation)
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+
+            verify(travelContractRepository, never()).save(any());
+            verify(invoiceClient, never()).requestInvoice(any());
+            assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
+            assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.COMPLETED));
         }
     }
 

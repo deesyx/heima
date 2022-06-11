@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Data
@@ -19,6 +20,7 @@ public class FixedFeeInvoiceRequest {
     private String requestId;
     private String taxIdentifier;
     private BigDecimal fixedFeeAmount;
+    private FixedFeeInvoiceConfirmation fixedFeeInvoiceConfirmation;
     private LocalDateTime createdAt;
     private LocalDateTime expiredAt;
 
@@ -36,6 +38,8 @@ public class FixedFeeInvoiceRequest {
                 .requestId(requestId)
                 .taxIdentifier(taxIdentifier)
                 .fixedFeeAmount(fixedFeeAmount)
+                .fixedFeeInvoiceConfirmation(Optional.ofNullable(fixedFeeInvoiceConfirmation)
+                        .map(FixedFeeInvoiceConfirmation::toEntity).orElse(null))
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
                 .build();
@@ -47,12 +51,18 @@ public class FixedFeeInvoiceRequest {
                 .requestId(entity.getRequestId())
                 .taxIdentifier(entity.getTaxIdentifier())
                 .fixedFeeAmount(entity.getFixedFeeAmount())
+                .fixedFeeInvoiceConfirmation(Optional.ofNullable(entity.getFixedFeeInvoiceConfirmation())
+                        .map(FixedFeeInvoiceConfirmation::fromEntity).orElse(null))
                 .createdAt(entity.getCreatedAt())
                 .expiredAt(entity.getExpiredAt())
                 .build();
     }
 
     public FixedFeeInvoiceRequestStatus status() {
-        return FixedFeeInvoiceRequestStatus.PROCESSING;
+        if (fixedFeeInvoiceConfirmation == null) {
+            return FixedFeeInvoiceRequestStatus.PROCESSING;
+        } else {
+            return FixedFeeInvoiceRequestStatus.COMPLETED;
+        }
     }
 }

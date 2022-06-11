@@ -116,7 +116,7 @@ class TravelContractRepositoryTest {
                             .fixedFeeAmount(BigDecimal.valueOf(1000))
                             .fixedFeeConfirmation(fixedFeeConfirmation)
                             .build())
-                    .fixedFeeInvoiceRequestEntity(fixedFeeInvoiceRequest)
+                    .fixedFeeInvoiceRequest(fixedFeeInvoiceRequest)
                     .createdAt(LocalDateTime.now())
                     .expiredAt(LocalDateTime.now().plusYears(1))
                     .build();

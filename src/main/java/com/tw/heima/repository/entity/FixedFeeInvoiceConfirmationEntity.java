@@ -14,20 +14,15 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "fixed_fee_request")
-public class TravelContractEntity {
+@Table(name = "fixed_fee_invoice_confirmation")
+public class FixedFeeInvoiceConfirmationEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String cid;
     private BigDecimal fixedFeeAmount;
-
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "travelContract")
-    private FixedFeeRequestEntity fixedFeeRequest;
-
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "travelContract")
-    private FixedFeeInvoiceRequestEntity fixedFeeInvoiceRequest;
-
     private LocalDateTime createdAt;
-    private LocalDateTime expiredAt;
+    @OneToOne
+    @JoinColumn(name = "request_primary_id")
+    private FixedFeeInvoiceRequestEntity fixedFeeInvoiceRequest;
 }

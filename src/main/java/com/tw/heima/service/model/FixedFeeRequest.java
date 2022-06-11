@@ -28,7 +28,8 @@ public class FixedFeeRequest {
                 .id(id)
                 .requestId(requestId)
                 .fixedFeeAmount(fixedFeeAmount)
-                .fixedFeeConfirmation(fixedFeeConfirmation.toEntity())
+                .fixedFeeConfirmation(Optional.ofNullable(fixedFeeConfirmation)
+                        .map(FixedFeeConfirmation::toEntity).orElse(null))
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
                 .build();
