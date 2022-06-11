@@ -1,6 +1,8 @@
 package com.tw.heima.service;
 
 import com.tw.heima.client.BusinessPaymentClient;
+import com.tw.heima.client.InvoiceClient;
+import com.tw.heima.client.dto.response.RequestInvoiceResponse;
 import com.tw.heima.client.dto.response.RequestPaymentResponse;
 import com.tw.heima.exception.BadRequestException;
 import com.tw.heima.exception.DataNotFoundException;
@@ -10,10 +12,14 @@ import com.tw.heima.repository.TravelContractRepository;
 import com.tw.heima.repository.entity.FixedFeeConfirmationEntity;
 import com.tw.heima.repository.entity.FixedFeeRequestEntity;
 import com.tw.heima.repository.entity.TravelContractEntity;
+import com.tw.heima.service.model.FixedFeeInvoiceRequest;
+import com.tw.heima.service.model.FixedFeeInvoiceRequestStatus;
 import feign.FeignException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,10 +29,10 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TravelContractServiceTest {
@@ -39,6 +45,12 @@ class TravelContractServiceTest {
 
     @Mock
     private BusinessPaymentClient businessPaymentClient;
+
+    @Mock
+    private InvoiceClient invoiceClient;
+
+    @Captor
+    ArgumentCaptor<TravelContractEntity> contractEntityCaptor;
 
     @Nested
     class RequestFixdFee {
@@ -146,6 +158,31 @@ class TravelContractServiceTest {
 
             assertThat(exception.getType(), is(ExceptionType.CONTACT_IT));
             assertThat(exception.getDetail(), is("business payment service is unavailable"));
+        }
+    }
+
+    @Nested
+    class RequestFixdFeeInvoice {
+        @Test
+        void should_return_FixedFeeInvoiceRequest_and_initiate_invoice_when_cid_is_valid() {
+            FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .fixedFeeConfirmation(fixedFeeConfirmation)
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+            when(invoiceClient.requestInvoice(any())).thenReturn(new RequestInvoiceResponse("invoiceId"));
+
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+
+            verify(travelContractRepository).save(contractEntityCaptor.capture());
+            assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequestEntity(), is(notNullValue()));
+            assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
+            assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.PROCESSING));
         }
     }
 

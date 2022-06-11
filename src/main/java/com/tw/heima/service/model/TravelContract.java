@@ -19,6 +19,7 @@ public class TravelContract {
     private String cid;
     private BigDecimal fixedFeeAmount;
     private FixedFeeRequest fixedFeeRequest;
+    private FixedFeeInvoiceRequest fixedFeeInvoiceRequest;
     private LocalDateTime createdAt;
     private LocalDateTime expiredAt;
 
@@ -28,6 +29,7 @@ public class TravelContract {
                 .cid(cid)
                 .fixedFeeAmount(fixedFeeAmount)
                 .fixedFeeRequest(fixedFeeRequest.toEntity())
+                .fixedFeeInvoiceRequestEntity(fixedFeeInvoiceRequest.toEntity())
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
                 .build();
@@ -39,8 +41,14 @@ public class TravelContract {
                 .cid(entity.getCid())
                 .fixedFeeAmount(entity.getFixedFeeAmount())
                 .fixedFeeRequest(FixedFeeRequest.fromEntity(entity.getFixedFeeRequest()))
+                .fixedFeeInvoiceRequest(Optional.ofNullable(entity.getFixedFeeInvoiceRequestEntity())
+                        .map(FixedFeeInvoiceRequest::fromEntity).orElse(null))
                 .createdAt(entity.getCreatedAt())
                 .expiredAt(entity.getExpiredAt())
                 .build();
+    }
+
+    public void requestFixedFeeInvoice(FixedFeeInvoiceRequest fixedFeeInvoiceRequest) {
+        this.fixedFeeInvoiceRequest = fixedFeeInvoiceRequest;
     }
 }

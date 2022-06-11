@@ -17,3 +17,5 @@ services:
     url: http://localhost:8081
   business-payment:
     url: http://localhost:9001
+  invoice:
+    url: http://localhost:9002
