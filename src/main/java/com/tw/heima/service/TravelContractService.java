@@ -87,6 +87,9 @@ public class TravelContractService {
         TravelContractEntity contractEntity = travelContractRepository.findByCid(cid)
                 .orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
         TravelContract contract = TravelContract.fromEntity(contractEntity);
+        if (!contract.getFixedFeeRequest().hasConfirm()) {
+            throw new BadRequestException(INPUT_PARAM_INVALID, "contract has not finished fixed fee payment");
+        }
         if (contract.getFixedFeeInvoiceRequest() != null
                 && contract.getFixedFeeInvoiceRequest().status() == COMPLETED) {
             return contract.getFixedFeeInvoiceRequest();

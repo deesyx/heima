@@ -220,6 +220,23 @@ class TravelContractServiceTest {
             assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
             assertThat(exception.getDetail(), is("contract not found"));
         }
+
+        @Test
+        void should_BadRequestException_when_contract_has_not_finished_fixed_feee_payment() {
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> travelContractService.requestFixdFeeInvoice("123", "tax123"));
+
+            assertThat(exception.getType(), is(ExceptionType.INPUT_PARAM_INVALID));
+            assertThat(exception.getDetail(), is("contract has not finished fixed fee payment"));
+        }
     }
 
     private FeignException.GatewayTimeout givenGatewayTimeoutException() {
