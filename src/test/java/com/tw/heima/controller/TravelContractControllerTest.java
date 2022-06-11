@@ -10,6 +10,7 @@ import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.service.TravelContractService;
 import com.tw.heima.service.model.FixedFeeInvoiceConfirmation;
 import com.tw.heima.service.model.FixedFeeInvoiceRequest;
+import com.tw.heima.service.model.InvoiceRequestRetryRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.tw.heima.exception.ExceptionType.*;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -179,6 +184,25 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.code").value("000001"))
                     .andExpect(jsonPath("$.msg").value("input param invalid"))
                     .andExpect(jsonPath("$.detail").value("contract has not finished fixed fee payment"));
+        }
+
+        @Test
+        void should_request_fixd_fee_invoice_return_failed() throws Exception {
+            RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
+            List<InvoiceRequestRetryRecord> invoiceRequestRetryRecords = spy(new ArrayList<>());
+            when(invoiceRequestRetryRecords.size()).thenReturn(12);
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = FixedFeeInvoiceRequest.builder()
+                    .requestId("1-2-3")
+                    .invoiceRequestRetryRecords(invoiceRequestRetryRecords)
+                    .build();
+            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.requestId").value("1-2-3"))
+                    .andExpect(jsonPath("$.status").value("FAILED"));
         }
     }
 }

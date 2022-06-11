@@ -71,7 +71,6 @@ class InvoiceClientTest {
                 .amount(BigDecimal.valueOf(1000))
                 .identifier("tax123")
                 .build();
-        RequestInvoiceResponse response = RequestInvoiceResponse.builder().invoiceId("invoiceId").build();
         server.when(request()
                         .withMethod("POST")
                         .withPath("/invoices")
