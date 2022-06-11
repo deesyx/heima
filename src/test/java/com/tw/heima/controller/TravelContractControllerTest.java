@@ -8,6 +8,7 @@ import com.tw.heima.exception.DataNotFoundException;
 import com.tw.heima.exception.ExceptionType;
 import com.tw.heima.exception.ExternalServerException;
 import com.tw.heima.service.TravelContractService;
+import com.tw.heima.service.model.FixedFeeInvoiceConfirmation;
 import com.tw.heima.service.model.FixedFeeInvoiceRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -135,6 +136,23 @@ class TravelContractControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.requestId").value("1-2-3"))
                     .andExpect(jsonPath("$.status").value("PROCESSING"));
+        }
+
+        @Test
+        void should_request_fixd_fee_invoice_return_completed() throws Exception {
+            RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = FixedFeeInvoiceRequest.builder()
+                    .requestId("1-2-3")
+                    .fixedFeeInvoiceConfirmation(FixedFeeInvoiceConfirmation.builder().build())
+                    .build();
+            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.requestId").value("1-2-3"))
+                    .andExpect(jsonPath("$.status").value("COMPLETED"));
         }
     }
 }
