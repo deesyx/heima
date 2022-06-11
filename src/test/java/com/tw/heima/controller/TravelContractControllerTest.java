@@ -167,5 +167,18 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.msg").value("data not found"))
                     .andExpect(jsonPath("$.detail").value("contract not found"));
         }
+
+        @Test
+        void should_return_400_exception_response_when_contract_has_not_finished_fixed_fee_payment() throws Exception {
+            RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
+            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenThrow(new BadRequestException(INPUT_PARAM_INVALID, "contract has not finished fixed fee payment"));
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(jsonPath("$.code").value("000001"))
+                    .andExpect(jsonPath("$.msg").value("input param invalid"))
+                    .andExpect(jsonPath("$.detail").value("contract has not finished fixed fee payment"));
+        }
     }
 }

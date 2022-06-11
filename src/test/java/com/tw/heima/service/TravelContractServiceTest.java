@@ -222,7 +222,7 @@ class TravelContractServiceTest {
         }
 
         @Test
-        void should_BadRequestException_when_contract_has_not_finished_fixed_feee_payment() {
+        void should_BadRequestException_when_contract_has_not_finished_fixed_fee_payment() {
             TravelContractEntity contract = TravelContractEntity.builder()
                     .cid("123")
                     .fixedFeeRequest(FixedFeeRequestEntity.builder()
