@@ -154,5 +154,18 @@ class TravelContractControllerTest {
                     .andExpect(jsonPath("$.requestId").value("1-2-3"))
                     .andExpect(jsonPath("$.status").value("COMPLETED"));
         }
+
+        @Test
+        void should_return_404_exception_response_when_cid_not_found() throws Exception {
+            RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
+            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenThrow(new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
+
+            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(jsonPath("$.code").value("000002"))
+                    .andExpect(jsonPath("$.msg").value("data not found"))
+                    .andExpect(jsonPath("$.detail").value("contract not found"));
+        }
     }
 }
