@@ -210,6 +210,16 @@ class TravelContractServiceTest {
             assertThat(fixedFeeInvoiceRequest.getRequestId(), is(notNullValue()));
             assertThat(fixedFeeInvoiceRequest.status(), is(FixedFeeInvoiceRequestStatus.COMPLETED));
         }
+
+        @Test
+        void should_throw_DataNotFoundException_when_cid_is_not_found() {
+            when(travelContractRepository.findByCid("321")).thenReturn(Optional.empty());
+
+            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixdFeeInvoice("321", "cardNumber"));
+
+            assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
+            assertThat(exception.getDetail(), is("contract not found"));
+        }
     }
 
     private FeignException.GatewayTimeout givenGatewayTimeoutException() {
