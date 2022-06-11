@@ -127,6 +127,26 @@ class TravelContractServiceTest {
             assertThat(exception.getType(), is(ExceptionType.RETRY_LATTER));
             assertThat(exception.getDetail(), is("business payment service is temporarily unavailable"));
         }
+
+        @Test
+        void should_throw_ExternalServerException_with_CONTACT_IT_when_business_payment_service_is_unavailable() {
+            TravelContractEntity contract = TravelContractEntity.builder()
+                    .cid("123")
+                    .fixedFeeRequest(FixedFeeRequestEntity.builder()
+                            .requestId("1-2-3")
+                            .fixedFeeAmount(BigDecimal.valueOf(1000))
+                            .build())
+                    .build();
+            when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
+            FeignException.ServiceUnavailable serviceUnavailable = givenServiceUnavailableException();
+            when(businessPaymentClient.requestPayment(any())).thenThrow(serviceUnavailable);
+            when(businessPaymentClient.getPaymentRequest(any())).thenThrow(serviceUnavailable);
+
+            ExternalServerException exception = assertThrows(ExternalServerException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+
+            assertThat(exception.getType(), is(ExceptionType.CONTACT_IT));
+            assertThat(exception.getDetail(), is("business payment service is unavailable"));
+        }
     }
 
     private FeignException.GatewayTimeout givenGatewayTimeoutException() {
