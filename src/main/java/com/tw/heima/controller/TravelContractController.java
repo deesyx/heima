@@ -17,17 +17,17 @@ public class TravelContractController {
 
     private final TravelContractService travelContractService;
 
-    @PostMapping("/{cid}/fixd-fee")
+    @PostMapping("/{cid}/fixed-fee")
     @ResponseStatus(HttpStatus.CREATED)
-    public RequestFixedFeeResponse requestFixdFee(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeRequest request) throws InterruptedException {
-        String requestId = travelContractService.requestFixdFee(cid, request.getDestinationCardNumber());
+    public RequestFixedFeeResponse requestFixedFee(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeRequest request) throws InterruptedException {
+        String requestId = travelContractService.requestFixedFee(cid, request.getDestinationCardNumber());
         return new RequestFixedFeeResponse(requestId);
     }
 
-    @PostMapping("/{cid}/fixd-fee-invoice")
+    @PostMapping("/{cid}/fixed-fee-invoice")
     @ResponseStatus(HttpStatus.CREATED)
-    public RequestFixedFeeInvoiceResponse requestFixdFeeInvoice(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeInvoiceRequest request) {
-        FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice(cid, request.getIdentifier());
+    public RequestFixedFeeInvoiceResponse requestFixedFeeInvoice(@PathVariable("cid") String cid, @RequestBody RequestFixedFeeInvoiceRequest request) {
+        FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixedFeeInvoice(cid, request.getIdentifier());
         return RequestFixedFeeInvoiceResponse.builder()
                 .requestId(fixedFeeInvoiceRequest.getRequestId())
                 .status(fixedFeeInvoiceRequest.status())

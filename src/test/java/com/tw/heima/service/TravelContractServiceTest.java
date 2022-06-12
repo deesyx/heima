@@ -53,7 +53,7 @@ class TravelContractServiceTest {
     ArgumentCaptor<TravelContractEntity> contractEntityCaptor;
 
     @Nested
-    class RequestFixdFee {
+    class RequestFixedFee {
         @Test
         void should_return_requestId_and_initiate_payment_when_cid_is_valid() throws Exception {
             TravelContractEntity contract = TravelContractEntity.builder()
@@ -66,7 +66,7 @@ class TravelContractServiceTest {
             when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
             when(businessPaymentClient.requestPayment(any())).thenReturn(new RequestPaymentResponse("paymentId"));
 
-            String requestId = travelContractService.requestFixdFee("123", "cardNumber");
+            String requestId = travelContractService.requestFixedFee("123", "cardNumber");
 
             assertThat(requestId, is("1-2-3"));
         }
@@ -85,7 +85,7 @@ class TravelContractServiceTest {
             when(businessPaymentClient.requestPayment(any())).thenThrow(gatewayTimeout);
             when(businessPaymentClient.getPaymentRequest(any())).thenReturn(new RequestPaymentResponse("paymentId"));
 
-            String requestId = travelContractService.requestFixdFee("123", "cardNumber");
+            String requestId = travelContractService.requestFixedFee("123", "cardNumber");
 
             assertThat(requestId, is("1-2-3"));
         }
@@ -94,7 +94,7 @@ class TravelContractServiceTest {
         void should_throw_DataNotFoundException_when_cid_is_not_found() {
             when(travelContractRepository.findByCid("321")).thenReturn(Optional.empty());
 
-            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixdFee("321", "cardNumber"));
+            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixedFee("321", "cardNumber"));
 
             assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
             assertThat(exception.getDetail(), is("contract not found"));
@@ -113,7 +113,7 @@ class TravelContractServiceTest {
                     .build();
             when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
 
-            BadRequestException exception = assertThrows(BadRequestException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> travelContractService.requestFixedFee("123", "cardNumber"));
 
             assertThat(exception.getType(), is(ExceptionType.INPUT_PARAM_INVALID));
             assertThat(exception.getDetail(), is("contract has finish payment"));
@@ -134,7 +134,7 @@ class TravelContractServiceTest {
             FeignException.NotFound notFound = givenNotFoundException();
             when(businessPaymentClient.getPaymentRequest(any())).thenThrow(notFound);
 
-            ExternalServerException exception = assertThrows(ExternalServerException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+            ExternalServerException exception = assertThrows(ExternalServerException.class, () -> travelContractService.requestFixedFee("123", "cardNumber"));
 
             assertThat(exception.getType(), is(ExceptionType.RETRY_LATTER));
             assertThat(exception.getDetail(), is("business payment service is temporarily unavailable"));
@@ -154,7 +154,7 @@ class TravelContractServiceTest {
             when(businessPaymentClient.requestPayment(any())).thenThrow(serviceUnavailable);
             when(businessPaymentClient.getPaymentRequest(any())).thenThrow(serviceUnavailable);
 
-            ExternalServerException exception = assertThrows(ExternalServerException.class, () -> travelContractService.requestFixdFee("123", "cardNumber"));
+            ExternalServerException exception = assertThrows(ExternalServerException.class, () -> travelContractService.requestFixedFee("123", "cardNumber"));
 
             assertThat(exception.getType(), is(ExceptionType.CONTACT_IT));
             assertThat(exception.getDetail(), is("business payment service is unavailable"));
@@ -162,7 +162,7 @@ class TravelContractServiceTest {
     }
 
     @Nested
-    class RequestFixdFeeInvoice {
+    class RequestFixedFeeInvoice {
         @Test
         void should_return_FixedFeeInvoiceRequest_and_initiate_invoice_when_cid_is_valid() {
             FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
@@ -177,7 +177,7 @@ class TravelContractServiceTest {
             when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
             when(invoiceClient.requestInvoice(any())).thenReturn(new RequestInvoiceResponse("invoiceId"));
 
-            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixedFeeInvoice("123", "tax123");
 
             verify(travelContractRepository).save(contractEntityCaptor.capture());
             assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest(), is(notNullValue()));
@@ -205,7 +205,7 @@ class TravelContractServiceTest {
                     .build();
             when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
 
-            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixedFeeInvoice("123", "tax123");
 
             verify(travelContractRepository, never()).save(any());
             verify(invoiceClient, never()).requestInvoice(any());
@@ -217,7 +217,7 @@ class TravelContractServiceTest {
         void should_throw_DataNotFoundException_when_cid_is_not_found() {
             when(travelContractRepository.findByCid("321")).thenReturn(Optional.empty());
 
-            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixdFeeInvoice("321", "cardNumber"));
+            DataNotFoundException exception = assertThrows(DataNotFoundException.class, () -> travelContractService.requestFixedFeeInvoice("321", "cardNumber"));
 
             assertThat(exception.getType(), is(ExceptionType.DATA_NOT_FOUND));
             assertThat(exception.getDetail(), is("contract not found"));
@@ -234,7 +234,7 @@ class TravelContractServiceTest {
                     .build();
             when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
 
-            BadRequestException exception = assertThrows(BadRequestException.class, () -> travelContractService.requestFixdFeeInvoice("123", "tax123"));
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> travelContractService.requestFixedFeeInvoice("123", "tax123"));
 
             assertThat(exception.getType(), is(ExceptionType.INPUT_PARAM_INVALID));
             assertThat(exception.getDetail(), is("contract has not finished fixed fee payment"));
@@ -255,7 +255,7 @@ class TravelContractServiceTest {
             FeignException.GatewayTimeout gatewayTimeout = givenGatewayTimeoutException();
             when(invoiceClient.requestInvoice(any())).thenThrow(gatewayTimeout);
 
-            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixedFeeInvoice("123", "tax123");
 
             verify(travelContractRepository).save(contractEntityCaptor.capture());
             assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest(), is(notNullValue()));
@@ -286,7 +286,7 @@ class TravelContractServiceTest {
                     .build();
             when(travelContractRepository.findByCid("123")).thenReturn(Optional.of(contract));
 
-            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixdFeeInvoice("123", "tax123");
+            FixedFeeInvoiceRequest fixedFeeInvoiceRequest = travelContractService.requestFixedFeeInvoice("123", "tax123");
 
             verify(travelContractRepository, never()).save(any());
             verify(invoiceClient, never()).requestInvoice(any());
@@ -296,7 +296,7 @@ class TravelContractServiceTest {
     }
 
     @Nested
-    class RetryRequestFixdFeeInvoice {
+    class RetryRequestFixedFeeInvoice {
         @Test
         void should_retry_call_invoice_service_success() {
             FixedFeeConfirmationEntity fixedFeeConfirmation = FixedFeeConfirmationEntity.builder().fixedFeeAmount(BigDecimal.valueOf(1000)).build();
@@ -316,7 +316,7 @@ class TravelContractServiceTest {
             when(travelContractRepository.findAll()).thenReturn(List.of(contract));
             when(invoiceClient.requestInvoice(any())).thenReturn(new RequestInvoiceResponse("invoiceId"));
 
-            travelContractService.retryRequestFixdFeeInvoice();
+            travelContractService.retryRequestFixedFeeInvoice();
 
             verify(travelContractRepository).save(contractEntityCaptor.capture());
             assertThat(contractEntityCaptor.getValue().getFixedFeeInvoiceRequest().getInvoiceRequestRetryRecords().size(), is(1));

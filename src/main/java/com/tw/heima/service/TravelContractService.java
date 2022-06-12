@@ -36,7 +36,7 @@ public class TravelContractService {
     private final BusinessPaymentClient businessPaymentClient;
     private final InvoiceClient invoiceClient;
 
-    public String requestFixdFee(String cid, String destinationCardNumber) throws InterruptedException {
+    public String requestFixedFee(String cid, String destinationCardNumber) throws InterruptedException {
         TravelContractEntity contractEntity = travelContractRepository.findByCid(cid)
                 .orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
         TravelContract contract = TravelContract.fromEntity(contractEntity);
@@ -87,7 +87,7 @@ public class TravelContractService {
         throw new ExternalServerException(ExceptionType.CONTACT_IT, "business payment service is unavailable");
     }
 
-    public FixedFeeInvoiceRequest requestFixdFeeInvoice(String cid, String identifier) {
+    public FixedFeeInvoiceRequest requestFixedFeeInvoice(String cid, String identifier) {
         TravelContractEntity contractEntity = travelContractRepository.findByCid(cid)
                 .orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
         TravelContract contract = TravelContract.fromEntity(contractEntity);
@@ -121,7 +121,7 @@ public class TravelContractService {
     }
 
     @Scheduled(cron = "0 0 * * * ?")
-    public void retryRequestFixdFeeInvoice() {
+    public void retryRequestFixedFeeInvoice() {
         List<TravelContract> needRetryContract = travelContractRepository.findAll().stream()
                 .map(TravelContract::fromEntity)
                 .filter(contract -> contract.getFixedFeeInvoiceRequest() != null && contract.getFixedFeeInvoiceRequest().status() == PROCESSING)

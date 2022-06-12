@@ -53,13 +53,13 @@ class TravelContractControllerTest {
     }
 
     @Nested
-    class RequestFixdFee {
+    class RequestFixedFee {
         @Test
-        void should_request_fixd_fee_success() throws Exception {
+        void should_request_fixed_fee_success() throws Exception {
             RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
-            when(travelContractService.requestFixdFee("123", "cardNumber")).thenReturn("1-2-3");
+            when(travelContractService.requestFixedFee("123", "cardNumber")).thenReturn("1-2-3");
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -69,10 +69,10 @@ class TravelContractControllerTest {
         @Test
         void should_return_404_exception_response_when_cid_not_found() throws Exception {
             RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
-            when(travelContractService.requestFixdFee("321", "cardNumber"))
+            when(travelContractService.requestFixedFee("321", "cardNumber"))
                     .thenThrow(new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
 
-            mockMvc.perform(post("/travel-contracts/321/fixd-fee")
+            mockMvc.perform(post("/travel-contracts/321/fixed-fee")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -84,10 +84,10 @@ class TravelContractControllerTest {
         @Test
         void should_return_400_exception_response_when_contract_has_finish_payment() throws Exception {
             RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
-            when(travelContractService.requestFixdFee("123", "cardNumber"))
+            when(travelContractService.requestFixedFee("123", "cardNumber"))
                     .thenThrow(new BadRequestException(INPUT_PARAM_INVALID, "contract has finish payment"));
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -99,10 +99,10 @@ class TravelContractControllerTest {
         @Test
         void should_return_ExternalServerException_with_RETRY_LATER_response_when_business_payment_service_is_temporarily_unavailable() throws Exception {
             RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
-            when(travelContractService.requestFixdFee("123", "cardNumber"))
+            when(travelContractService.requestFixedFee("123", "cardNumber"))
                     .thenThrow(new ExternalServerException(RETRY_LATTER, "business payment service is temporarily unavailable"));
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isInternalServerError())
@@ -114,10 +114,10 @@ class TravelContractControllerTest {
         @Test
         void should_return_ExternalServerException_with_CONTACT_IT_response_when_business_payment_service_is_unavailable() throws Exception {
             RequestFixedFeeRequest request = new RequestFixedFeeRequest("cardNumber");
-            when(travelContractService.requestFixdFee("123", "cardNumber"))
+            when(travelContractService.requestFixedFee("123", "cardNumber"))
                     .thenThrow(new ExternalServerException(ExceptionType.CONTACT_IT, "business payment service is unavailable"));
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isInternalServerError())
@@ -128,14 +128,14 @@ class TravelContractControllerTest {
     }
 
     @Nested
-    class RequestFixdFeeInvoice {
+    class RequestFixedFeeInvoice {
         @Test
-        void should_request_fixd_fee_invoice_return_processing() throws Exception {
+        void should_request_fixed_fee_invoice_return_processing() throws Exception {
             RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
             FixedFeeInvoiceRequest fixedFeeInvoiceRequest = FixedFeeInvoiceRequest.builder().requestId("1-2-3").build();
-            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
+            when(travelContractService.requestFixedFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee-invoice")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -144,15 +144,15 @@ class TravelContractControllerTest {
         }
 
         @Test
-        void should_request_fixd_fee_invoice_return_completed() throws Exception {
+        void should_request_fixed_fee_invoice_return_completed() throws Exception {
             RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
             FixedFeeInvoiceRequest fixedFeeInvoiceRequest = FixedFeeInvoiceRequest.builder()
                     .requestId("1-2-3")
                     .fixedFeeInvoiceConfirmation(FixedFeeInvoiceConfirmation.builder().build())
                     .build();
-            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
+            when(travelContractService.requestFixedFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee-invoice")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -163,9 +163,9 @@ class TravelContractControllerTest {
         @Test
         void should_return_404_exception_response_when_cid_not_found() throws Exception {
             RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
-            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenThrow(new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
+            when(travelContractService.requestFixedFeeInvoice("123", "tax123")).thenThrow(new DataNotFoundException(DATA_NOT_FOUND, "contract not found"));
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee-invoice")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(jsonPath("$.code").value("000002"))
@@ -176,9 +176,9 @@ class TravelContractControllerTest {
         @Test
         void should_return_400_exception_response_when_contract_has_not_finished_fixed_fee_payment() throws Exception {
             RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
-            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenThrow(new BadRequestException(INPUT_PARAM_INVALID, "contract has not finished fixed fee payment"));
+            when(travelContractService.requestFixedFeeInvoice("123", "tax123")).thenThrow(new BadRequestException(INPUT_PARAM_INVALID, "contract has not finished fixed fee payment"));
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee-invoice")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(jsonPath("$.code").value("000001"))
@@ -187,7 +187,7 @@ class TravelContractControllerTest {
         }
 
         @Test
-        void should_request_fixd_fee_invoice_return_failed() throws Exception {
+        void should_request_fixed_fee_invoice_return_failed() throws Exception {
             RequestFixedFeeInvoiceRequest request = new RequestFixedFeeInvoiceRequest("tax123");
             List<InvoiceRequestRetryRecord> invoiceRequestRetryRecords = spy(new ArrayList<>());
             when(invoiceRequestRetryRecords.size()).thenReturn(12);
@@ -195,9 +195,9 @@ class TravelContractControllerTest {
                     .requestId("1-2-3")
                     .invoiceRequestRetryRecords(invoiceRequestRetryRecords)
                     .build();
-            when(travelContractService.requestFixdFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
+            when(travelContractService.requestFixedFeeInvoice("123", "tax123")).thenReturn(fixedFeeInvoiceRequest);
 
-            mockMvc.perform(post("/travel-contracts/123/fixd-fee-invoice")
+            mockMvc.perform(post("/travel-contracts/123/fixed-fee-invoice")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
