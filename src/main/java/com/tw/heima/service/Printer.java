@@ -25,6 +25,10 @@ public class Printer {
             return "bar";
         }
 
+        if (value == 15) {
+            return "foobar";
+        }
+
         return String.valueOf(value);
     }
 }
