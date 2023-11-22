@@ -14,4 +14,13 @@ class PrinterTest {
 
         assertEquals("foo", res);
     }
+
+    @Test
+    void should_print_bar_when_input_is_5() {
+        Printer printer = new Printer();
+
+        String res = printer.print(5);
+
+        assertEquals("bar", res);
+    }
 }
