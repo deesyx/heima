@@ -59,4 +59,13 @@ class PrinterTest {
 
         assertEquals("foobar", res);
     }
+
+    @Test
+    void should_print_1_when_input_is_1() {
+        Printer printer = new Printer();
+
+        String res = printer.print(1);
+
+        assertEquals("1", res);
+    }
 }
