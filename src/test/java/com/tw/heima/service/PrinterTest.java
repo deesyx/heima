@@ -32,4 +32,31 @@ class PrinterTest {
 
         assertEquals("foobar", res);
     }
+
+    @Test
+    void should_print_foo_when_input_is_6() {
+        Printer printer = new Printer();
+
+        String res = printer.print(6);
+
+        assertEquals("foo", res);
+    }
+
+    @Test
+    void should_print_bar_when_input_is_10() {
+        Printer printer = new Printer();
+
+        String res = printer.print(10);
+
+        assertEquals("bar", res);
+    }
+
+    @Test
+    void should_print_foobar_when_input_is_30() {
+        Printer printer = new Printer();
+
+        String res = printer.print(30);
+
+        assertEquals("foobar", res);
+    }
 }
