@@ -17,6 +17,6 @@ public class Printer {
     }
 
     public String print(int value) {
-        return null;
+        return "foo";
     }
 }
