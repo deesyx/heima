@@ -17,16 +17,16 @@ public class Printer {
     }
 
     public String print(int value) {
-        if (value == 3) {
+        if (value % 15 == 0) {
+            return "foobar";
+        }
+
+        if (value % 3 == 0) {
             return "foo";
         }
 
-        if (value == 5) {
+        if (value % 5 == 0) {
             return "bar";
-        }
-
-        if (value == 15) {
-            return "foobar";
         }
 
         return String.valueOf(value);
