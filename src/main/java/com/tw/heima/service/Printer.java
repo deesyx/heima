@@ -17,6 +17,14 @@ public class Printer {
     }
 
     public String print(int value) {
-        return "foo";
+        if (value == 3) {
+            return "foo";
+        }
+
+        if (value == 5) {
+            return "bar";
+        }
+
+        return String.valueOf(value);
     }
 }
