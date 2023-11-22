@@ -17,18 +17,16 @@ public class Printer {
     }
 
     public String print(int value) {
-        if (value % 15 == 0) {
-            return "foobar";
-        }
+        StringBuilder sb = new StringBuilder();
 
         if (value % 3 == 0) {
-            return "foo";
+            sb.append("foo");
         }
 
         if (value % 5 == 0) {
-            return "bar";
+            sb.append("bar");
         }
 
-        return String.valueOf(value);
+        return sb.length() > 0 ? sb.toString() : String.valueOf(value);
     }
 }
